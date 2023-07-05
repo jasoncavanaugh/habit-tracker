@@ -1,6 +1,6 @@
 import type { NextPage } from "next";
 import * as RadixModal from "@radix-ui/react-dialog";
-import { RefObject, useRef, useState } from "react";
+import { RefObject, useEffect, useRef, useState } from "react";
 import { api } from "../utils/api";
 import { Modal } from "../components/Modal";
 import { HabitDisplay } from "../components/HabitDisplay";
@@ -9,7 +9,9 @@ import { get_years } from "../utils/calendar";
 import { ColorOption, COLOR_OPTIONS, COLOR_TO_CLASSNAME, HabitWithDayDrops } from "../utils/types";
 import { signIn, signOut, useSession } from "next-auth/react";
 import { getServerAuthSession } from "../server/auth";
+import Image from "next/image";
 import { type GetServerSideProps } from "next";
+import { useWindowDimensions } from "../utils/hooks/useWindowDimensions";
 
 //I should probably understand how this works, but I just ripped it from https://create.t3.gg/en/usage/next-auth
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
@@ -23,6 +25,7 @@ const Home: NextPage = () => {
   const ref = useRef<HTMLButtonElement>(null);
   const [filter_text, set_filter_text] = useState("");
   const session = useSession();
+
 
   if (all_habits.status === "error") {
     console.error(all_habits.error);
@@ -120,6 +123,15 @@ function render_habits(habits: HabitWithDayDrops[], parent_ref: RefObject<HTMLBu
 }
 
 function SignInPage() {
+  const { width } = useWindowDimensions();
+
+  if (width === null) { return null; }
+  if (width <= 768) {
+    return <MobileSignIn />
+  } else {
+    return <DesktopSignIn />
+  }
+
   return (
     <div className="h-[95vh] p-1 md:p-4">
       <div className="flex justify-end">
@@ -145,6 +157,43 @@ function SignInPage() {
           <p>Track your habits with a simple grid.</p>
           <p>Inspired by the Github contributions graph.</p>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function MobileSignIn() {
+  return <div>Mobile</div>;
+}
+
+
+function DesktopSignIn() {
+  return (
+    <div className="flex">
+      <div
+        className="relative mt-[-2px] h-screen w-1/2 rounded-tr-3xl rounded-br-3xl bg-cover bg-[center_-1rem]"
+        style={{ "backgroundImage": "url(/test1.svg)" }}
+      >
+        <div className="absolute top-[20rem] right-[20rem]">
+          <h1
+            //className="inline-block bg-gradient-to-l from-pink-400 to-pink-600 bg-clip-text text-7xl font-bold text-transparent text-white"
+            className="inline-block bg-clip-text text-7xl font-bold text-white "
+          //className="text-gradient-to-r text-pink-500"
+          >
+            STREAK
+          </h1>
+          <h1 className="inline-block text-7xl font-bold text-white">GRAPH</h1>
+        </div>
+      </div>
+      <div className="relative">
+        <h2 className="absolute top-[20rem] left-20 w-[50rem] text-5xl font-semibold text-slate-800">
+          Track your habits with a simple graph
+        </h2>
+        <button
+          className="absolute top-[28rem] left-20 w-[10rem] rounded-full bg-pink-500 px-3 py-1 font-semibold text-white shadow-sm shadow-pink-500 hover:brightness-110 md:px-6 md:py-2 md:text-xl"
+        >
+          Sign In
+        </button>
       </div>
     </div>
   );
@@ -229,8 +278,8 @@ function AddNewHabitButtonAndModal() {
           </button>
           <button
             className={`rounded-full bg-pink-500 px-3 py-2 text-xs font-semibold text-white lg:px-5 lg:py-3 lg:text-base lg:font-bold ${add_habit_disabled
-                ? "opacity-50"
-                : "hover:cursor-pointer hover:brightness-110"
+              ? "opacity-50"
+              : "hover:cursor-pointer hover:brightness-110"
               }`}
             type="submit"
             disabled={add_habit_disabled}
